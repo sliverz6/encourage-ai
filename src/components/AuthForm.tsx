@@ -29,7 +29,13 @@ export default function AuthForm() {
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        setError("이메일 또는 비밀번호가 올바르지 않아요.");
+        if (error.message === "Invalid login credentials") {
+          setError("이메일 또는 비밀번호가 올바르지 않아요.");
+        } else if (error.message === "Email not confirmed") {
+          setError("이메일 인증이 필요해요. Supabase 대시보드에서 이메일 인증을 꺼주세요.");
+        } else {
+          setError(error.message);
+        }
       } else {
         router.push("/");
         router.refresh();
