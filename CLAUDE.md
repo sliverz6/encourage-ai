@@ -33,7 +33,7 @@ SUPABASE_SERVICE_ROLE_KEY  # secret, server-only; used only in /api/account for 
 Korean encouragement web app. Users must be logged in (middleware enforces this). All history is stored in Supabase with RLS (`auth.uid() = user_id`).
 
 **Auth flow:**
-- `src/middleware.ts` — runs on every request; calls `supabase.auth.getUser()` (network call) to refresh session cookies and redirects unauthenticated users to `/login`. API routes are excluded from redirect.
+- `src/proxy.ts` — Next.js 16 middleware (exported as `proxy`, not `middleware`); calls `supabase.auth.getUser()` to refresh session cookies and redirects unauthenticated users to `/login`. API routes and `/` are excluded from redirect (landing page handles its own auth check).
 - `src/app/login/page.tsx` + `src/components/AuthForm.tsx` — email/password login and signup (no email verification required)
 
 **Supabase clients:**
@@ -41,7 +41,9 @@ Korean encouragement web app. Users must be logged in (middleware enforces this)
 - `src/lib/supabase-server.ts` — async `createClient()` using `await cookies()` for server components and API routes
 
 **Pages and components:**
-- `src/app/page.tsx` — main page; renders `<EncouragementApp />`
+- `src/app/page.tsx` — checks session server-side; shows `<LandingPage />` if unauthenticated, otherwise renders header + `<EncouragementApp />`
+- `src/components/LandingPage.tsx` — two-column marketing page (hero right, `<TypingDemo />` left); mobile uses `flex-col-reverse`
+- `src/components/TypingDemo.tsx` — "use client" animation cycling through 4 Korean demo sets; state machine: 900ms delay → type at 28ms/char → 2s pause → fade out → next
 - `src/components/EncouragementApp.tsx` — textarea input, card display above button with CSS grid height animation (`grid-rows-[0fr]→[1fr]`), loading spinner
 - `src/app/history/page.tsx` + `src/components/HistoryList.tsx` — history list with edit/delete; edit navigates to `/?editId=&situation=&message=`
 - `src/app/profile/page.tsx` — shows email, message count, password change (`PasswordChangeForm`), and account deletion (`DeleteAccountButton`)
