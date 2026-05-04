@@ -40,13 +40,16 @@ Korean encouragement web app. Users must be logged in (middleware enforces this)
 - `src/lib/supabase-browser.ts` — `createBrowserClient` for `"use client"` components
 - `src/lib/supabase-server.ts` — async `createClient()` using `await cookies()` for server components and API routes
 
-**Pages and components:**
-- `src/app/page.tsx` — checks session server-side; shows `<LandingPage />` if unauthenticated, otherwise renders header + `<EncouragementApp />`
+**Route structure:**
+- `src/app/page.tsx` — checks session server-side (`getSession()`, local cookie read); shows `<LandingPage />` if unauthenticated, otherwise renders `<Header />` + `<EncouragementApp />`
+- `src/app/(main)/layout.tsx` — shared layout for `/history` and `/profile`; renders `<Header />` + background wrapper so the header persists across navigations within the group (no skeleton on route change)
+- `src/app/(main)/history/` + `src/app/(main)/profile/` — each has `page.tsx` and `loading.tsx` (content-only skeleton, header stays in layout)
+
+**Key components:**
 - `src/components/LandingPage.tsx` — two-column marketing page (hero right, `<TypingDemo />` left); mobile uses `flex-col-reverse`
 - `src/components/TypingDemo.tsx` — "use client" animation cycling through 4 Korean demo sets; state machine: 900ms delay → type at 28ms/char → 2s pause → fade out → next
 - `src/components/EncouragementApp.tsx` — textarea input, card display above button with CSS grid height animation (`grid-rows-[0fr]→[1fr]`), loading spinner
-- `src/app/history/page.tsx` + `src/components/HistoryList.tsx` — history list with edit/delete; edit navigates to `/?editId=&situation=&message=`
-- `src/app/profile/page.tsx` — shows email, message count, password change (`PasswordChangeForm`), and account deletion (`DeleteAccountButton`)
+- `src/components/HistoryList.tsx` — "use client"; fetches on mount, shows skeleton cards while loading, edit navigates to `/?editId=&situation=&message=`
 - `src/components/Header.tsx` — server component; uses `getSession()` (local cookie read, no network) for display only since middleware already handles auth security
 - `src/components/ProfileDropdown.tsx` — avatar button (border-only circle with email initial), dropdown with email, 프로필 link, and logout
 
