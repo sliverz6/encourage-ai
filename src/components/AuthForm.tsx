@@ -24,18 +24,6 @@ export default function AuthForm() {
 
     setLoading(true);
 
-    // 디버그: 환경변수 값 검사
-    const _url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    const _key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-    const nonAscii = [..._key]
-      .map((ch, i) => (ch.charCodeAt(0) > 127 ? `[${i}]=U+${ch.charCodeAt(0).toString(16)}` : null))
-      .filter(Boolean);
-    if (!_url || !_key || nonAscii.length > 0) {
-      setError(`ENV: url=${_url.length}자 key=${_key.length}자 비ASCII=${nonAscii.slice(0, 3).join(",") || "없음"}`);
-      setLoading(false);
-      return;
-    }
-
     const supabase = createClient();
 
     try {
