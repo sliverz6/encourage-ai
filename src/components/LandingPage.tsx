@@ -1,6 +1,7 @@
 import Link from "next/link";
 import TypingDemo from "@/components/TypingDemo";
 import Footer from "@/components/Footer";
+import PricingCards from "@/components/PricingCards";
 
 export default function LandingPage() {
   return (
@@ -51,31 +52,7 @@ export default function LandingPage() {
       {/* 요금제 섹션 */}
       <div className="px-8 pb-10">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-center text-xs font-semibold text-stone-400 uppercase tracking-widest mb-4">요금제</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* 무료 */}
-            <div className="bg-white/70 rounded-2xl p-5 border border-stone-200">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-2">무료</p>
-              <p className="text-2xl font-bold text-stone-800 leading-tight">&#8361;0</p>
-              <p className="text-xs text-stone-400 mt-0.5 mb-3">1일 1회</p>
-              <ul className="space-y-1.5 text-sm text-stone-600">
-                <li>&#10003;&ensp;AI 격려 메시지</li>
-                <li>&#10003;&ensp;히스토리 보관</li>
-                <li className="text-stone-400">&#8212;&ensp;하루 1회 제한</li>
-              </ul>
-            </div>
-            {/* 구독 */}
-            <div className="bg-amber-600 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-amber-200 uppercase tracking-widest mb-2">구독</p>
-              <p className="text-2xl font-bold text-white leading-tight">&#8361;1,900<span className="text-sm font-normal text-amber-200">&thinsp;/ 월</span></p>
-              <p className="text-xs text-amber-200 mt-0.5 mb-3">무제한</p>
-              <ul className="space-y-1.5 text-sm text-amber-50">
-                <li>&#10003;&ensp;AI 격려 메시지</li>
-                <li>&#10003;&ensp;히스토리 보관</li>
-                <li>&#10003;&ensp;무제한 이용</li>
-              </ul>
-            </div>
-          </div>
+          <PricingCards />
         </div>
       </div>
 

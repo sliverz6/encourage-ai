@@ -20,6 +20,9 @@ export default function Footer() {
           <span>통신판매업 신고번호: 제 2025-인천부평-1584 호</span>
         </div>
         <div className="flex justify-center gap-5 pt-3">
+          <Link href="/price" className="text-xs text-stone-500 hover:text-amber-700 transition-colors">
+            요금제
+          </Link>
           <Link href="/terms" className="text-xs text-stone-500 hover:text-amber-700 transition-colors">
             이용약관
           </Link>
