@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 
 export default function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get("next");
+  const redirectTo =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+      ? nextParam
+      : "/";
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +44,7 @@ export default function AuthForm() {
             setError(error.message);
           }
         } else {
-          router.push("/");
+          router.push(redirectTo);
           router.refresh();
         }
       } else {
@@ -46,7 +52,7 @@ export default function AuthForm() {
         if (error) {
           setError(error.message);
         } else {
-          router.push("/");
+          router.push(redirectTo);
           router.refresh();
         }
       }

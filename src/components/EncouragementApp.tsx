@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { addEntry, updateEntry } from "@/lib/history";
 
@@ -16,6 +17,7 @@ export default function EncouragementApp() {
     editId && initialMessage ? { id: Number(editId), message: initialMessage } : null
   );
   const [loading, setLoading] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
 
   async function handleGenerate() {
     if (!situation.trim() || loading) return;
@@ -29,6 +31,12 @@ export default function EncouragementApp() {
       body: JSON.stringify({ situation }),
     });
 
+    if (res.status === 429) {
+      setLimitReached(true);
+      setLoading(false);
+      return;
+    }
+
     const { message } = await res.json();
 
     if (editId) {
@@ -40,6 +48,27 @@ export default function EncouragementApp() {
 
     setCard({ id: editId ? Number(editId) : Date.now(), message });
     setLoading(false);
+  }
+
+  if (limitReached) {
+    return (
+      <div className="flex flex-col items-center w-full">
+        <div className="bg-white border border-stone-100 rounded-2xl p-8 shadow-sm w-full text-center animate-fade-in">
+          <p className="text-lg font-medium text-stone-700 leading-relaxed">
+            오늘의 격려를 모두 받으셨어요
+          </p>
+          <p className="text-base text-stone-500 mt-2">내일 다시 만나요 🌙</p>
+          <div className="border-t border-stone-100 my-6" />
+          <p className="text-sm text-stone-500 mb-4">무제한으로 받고 싶다면</p>
+          <Link
+            href="/subscribe"
+            className="inline-block px-6 py-3 bg-amber-600 hover:bg-amber-700 hover:scale-105 active:scale-95 text-white text-sm font-semibold rounded-2xl shadow-lg transition-all duration-150"
+          >
+            구독 시작하기 — 월 1,900원
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const showCard = loading || !!card;

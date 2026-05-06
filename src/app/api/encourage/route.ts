@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
+import { todayKstStartUtc } from "@/lib/portone";
 
 const client = new Anthropic();
 
@@ -10,6 +12,33 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.situation?.trim()) {
     return NextResponse.json({ error: "situation is required" }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const isPro = sub?.status === "active" || sub?.status === "canceling";
+
+  if (!isPro) {
+    const startUtc = todayKstStartUtc().toISOString();
+    const { count } = await supabase
+      .from("encouragement_history")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", startUtc);
+
+    if ((count ?? 0) >= 1) {
+      return NextResponse.json(
+        { error: "limit_reached", code: "LIMIT" },
+        { status: 429 }
+      );
+    }
   }
 
   try {

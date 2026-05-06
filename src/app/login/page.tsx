@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import AuthForm from "@/components/AuthForm";
 
 export default function LoginPage() {
@@ -9,7 +10,9 @@ export default function LoginPage() {
           <p className="text-stone-500 mt-2 text-sm">따뜻한 격려 메시지를 받아보세요</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
-          <AuthForm />
+          <Suspense>
+            <AuthForm />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@ export default function PricingCards() {
             <li>&#10003;&ensp;무제한 이용</li>
           </ul>
           <Link
-            href="/login"
+            href="/subscribe"
             className="mt-6 block text-center py-2.5 rounded-xl bg-white text-sm font-semibold text-amber-700 hover:bg-amber-50 transition-colors"
           >
             구독 시작하기

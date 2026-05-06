@@ -34,6 +34,9 @@ export async function proxy(request: NextRequest) {
   if (!user && !isLoginPage && !isApiRoute && !isRootPage && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    if (pathname && pathname !== "/") {
+      url.searchParams.set("next", pathname);
+    }
     return NextResponse.redirect(url);
   }
 
