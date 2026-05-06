@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function SubscribePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,41 +25,88 @@ export default function SubscribePage() {
     if (loading) return;
     setLoading(true);
     setError(null);
+    setStage("결제창 여는 중...");
 
     try {
       const PortOne = await import("@portone/browser-sdk/v2");
+
       const issueResponse = await PortOne.requestIssueBillingKey({
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
         billingKeyMethod: "CARD",
-        issueId: crypto.randomUUID(),
+        issueId: `bk-${crypto.randomUUID()}`,
         issueName: "Encourage AI 월간 구독",
       });
 
-      if (issueResponse?.code !== undefined) {
-        setError(issueResponse.message ?? "빌링키 발급에 실패했어요.");
+      console.log("[subscribe] issueResponse", issueResponse);
+
+      if (!issueResponse) {
+        setError("결제창에서 응답을 받지 못했어요. 다시 시도해주세요.");
         setLoading(false);
+        setStage("");
         return;
       }
 
-      const saveRes = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billingKey: issueResponse?.billingKey }),
-      });
+      if (issueResponse.code !== undefined) {
+        setError(`${issueResponse.message ?? "빌링키 발급에 실패했어요."} (${issueResponse.code})`);
+        setLoading(false);
+        setStage("");
+        return;
+      }
+
+      if (!issueResponse.billingKey) {
+        setError("빌링키가 발급되지 않았어요. 카드 정보를 다시 확인해주세요.");
+        setLoading(false);
+        setStage("");
+        return;
+      }
+
+      setStage("결제 처리 중...");
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
+      let saveRes: Response;
+      try {
+        saveRes = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ billingKey: issueResponse.billingKey }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      console.log("[subscribe] /api/subscribe status", saveRes.status);
+
+      const data = await saveRes.json().catch(() => ({}));
+      console.log("[subscribe] /api/subscribe body", data);
 
       if (!saveRes.ok) {
-        const data = await saveRes.json().catch(() => ({}));
-        setError(data?.error ?? "결제에 실패했어요. 다른 카드로 다시 시도해주세요.");
+        setError(
+          data?.error
+            ? `${data.error}${data?.detail ? ` (${data.detail})` : ""}`
+            : `결제에 실패했어요 (HTTP ${saveRes.status})`
+        );
         setLoading(false);
+        setStage("");
         return;
       }
 
-      router.replace("/?subscribed=1");
-      router.refresh();
+      setStage("완료! 이동 중...");
+      window.location.assign("/?subscribed=1");
     } catch (e) {
-      setError(String(e));
+      console.error("[subscribe] error", e);
+      const msg =
+        e instanceof DOMException && e.name === "AbortError"
+          ? "결제 요청이 시간 초과됐어요. 다시 시도해주세요."
+          : e instanceof Error
+            ? e.message
+            : String(e);
+      setError(msg);
       setLoading(false);
+      setStage("");
     }
   }
 
@@ -99,7 +147,13 @@ export default function SubscribePage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 mb-4 text-center">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-red-600 text-center break-words">{error}</p>
+            </div>
+          )}
+
+          {loading && stage && !error && (
+            <p className="text-sm text-stone-500 text-center mb-4">{stage}</p>
           )}
 
           <button

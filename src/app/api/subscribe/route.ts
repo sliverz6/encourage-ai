@@ -18,6 +18,19 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!process.env.PORTONE_API_SECRET) {
+    return NextResponse.json(
+      { error: "서버 설정 오류 (PORTONE_API_SECRET 누락)" },
+      { status: 500 }
+    );
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "서버 설정 오류 (SUPABASE_SERVICE_ROLE_KEY 누락)" },
+      { status: 500 }
+    );
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || !user.email) {
@@ -30,11 +43,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "billingKey is required" }, { status: 400 });
   }
 
-  const { data: existing } = await supabaseAdmin
+  const { data: existing, error: existingError } = await supabaseAdmin
     .from("subscriptions")
     .select("status")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (existingError) {
+    console.error("[/api/subscribe] read existing error", existingError);
+    return NextResponse.json(
+      { error: "구독 상태 조회 실패", detail: existingError.message },
+      { status: 500 }
+    );
+  }
 
   if (existing && (existing.status === "active" || existing.status === "canceling")) {
     return NextResponse.json({ error: "이미 구독 중이에요." }, { status: 400 });
@@ -43,15 +64,18 @@ export async function POST(req: NextRequest) {
   const paymentId = `sub-init-${user.id}-${Date.now()}`;
 
   try {
-    await chargeWithBillingKey({
+    const result = await chargeWithBillingKey({
       paymentId,
       billingKey,
       userId: user.id,
       userEmail: user.email,
     });
+    console.log("[/api/subscribe] charge ok", paymentId, result);
   } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    console.error("[/api/subscribe] charge failed", paymentId, detail);
     return NextResponse.json(
-      { error: "결제에 실패했어요. 카드를 확인하고 다시 시도해주세요.", detail: String(e) },
+      { error: "결제에 실패했어요. 카드를 확인하고 다시 시도해주세요.", detail },
       { status: 400 }
     );
   }
@@ -76,6 +100,7 @@ export async function POST(req: NextRequest) {
     );
 
   if (upsertError) {
+    console.error("[/api/subscribe] upsert failed", upsertError);
     return NextResponse.json(
       { error: "구독 정보 저장에 실패했어요.", detail: upsertError.message },
       { status: 500 }
