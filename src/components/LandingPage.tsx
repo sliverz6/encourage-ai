@@ -1,9 +1,11 @@
 import Link from "next/link";
 import TypingDemo from "@/components/TypingDemo";
+import Footer from "@/components/Footer";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-8">
       <div className="w-full max-w-5xl flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-20">
 
         {/* 왼쪽: 타이핑 데모 */}
@@ -44,6 +46,9 @@ export default function LandingPage() {
         </div>
 
       </div>
+      </div>
+
+      <Footer />
     </div>
   );
 }

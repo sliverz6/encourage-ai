@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import EncouragementApp from "@/components/EncouragementApp";
 import LandingPage from "@/components/LandingPage";
 import { createClient } from "@/lib/supabase-server";
@@ -29,6 +30,7 @@ export default async function Home() {
           </Suspense>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
