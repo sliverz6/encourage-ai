@@ -29,7 +29,7 @@ export async function proxy(request: NextRequest) {
   const isLoginPage = pathname === "/login";
   const isApiRoute = pathname.startsWith("/api/");
   const isRootPage = pathname === "/";
-  const isPublicPage = pathname === "/terms" || pathname === "/privacy" || pathname === "/refund";
+  const isPublicPage = pathname === "/terms" || pathname === "/privacy" || pathname === "/refund" || pathname === "/price";
 
   if (!user && !isLoginPage && !isApiRoute && !isRootPage && !isPublicPage) {
     const url = request.nextUrl.clone();
